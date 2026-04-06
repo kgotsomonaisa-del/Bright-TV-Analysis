@@ -190,7 +190,7 @@ FROM `workspace`.`brighttv`.`user_profiles`;
 ---12. Combining all codes into one
 --------------------------------------------------------------------------------------
 SELECT
-    up.UserID,
+    up.UserID, 
 ---Dates
     v.RecordDate2 as recording_date,
     Dayname(v.RecordDate2) as day_name,
@@ -207,8 +207,15 @@ SELECT
         WHEN date_format(v.`Duration 2`, 'HH:mm:ss') between '12:00:00' and '16:59:59' THEN 'Afternoon'
         WHEN date_format(v.`Duration 2`, 'HH:mm:ss') >= '17:00:00' THEN 'Evening'
     END as duration_buckets,
+       case
+        when age between 18 and 34 then 'Youth'
+        when age between 35 and 44 then 'Adult'
+        when age between 45 and 54 then 'Middle_Aged'
+        when age between 55 and 64 then 'Senior'
+        when age >= 65 then 'Elderly'          
+    end as age_category,
     v.Channel2,
-    from_utc_timestamp(v.`Duration 2`, 'Africa/Johannesburg') AS converted_time,
+    from_utc_timestamp(v.`Duration 2`, 'Africa/Johannesburg') AS converted_recording_time,
 ---cleaning name
     COALESCE(TRIM(up.Name), 'Unknown') AS Name,
     COALESCE(TRIM(up.Surname), 'Unknown') AS Surname,
@@ -239,9 +246,8 @@ SELECT
 ---cleaning social media
     COALESCE(TRIM(up.`Social Media Handle`), 'N/A') AS Social_Media_Handle
 FROM `workspace`.`brighttv`.`user_profiles` as up
-INNER JOIN `workspace`.`brighttv`.`viewership` as v
-ON up.userID = v.userid4;
-
+LEFT JOIN `workspace`.`brighttv`.`viewership` as v
+ON up.UserID = v.userid5
 --------------------------------------------------------------------------------------
 ---13. Removing duplicates
 --------------------------------------------------------------------------------------
